@@ -66,18 +66,30 @@ class SubmangaPage(object):
         url_down_base = url_first[:len(temp_filename)*-1]
 
         #descargo la imagen de cada capitulo
-        for i in range(1, len(select)+1):
-            address = url_down_base + str(i) + '.jpg'
-            filename = page_dir + '/' + str(i) + '.jpg'
-            print 'bajando %i de %i' % (i, len(select))
-            self.download_image(address, filename)
+        cont = 0
+        while len(select) > cont:
+            for i in range(1, len(select)+1):
+                address = url_down_base + str(i) + '.jpg'
+                filename = page_dir + '/' + str(i).rjust(4,'0') + '.jpg'
+                print 'bajando %i de %i' % (i, len(select))
+                resp = self.download_image(address, filename)
+                if resp:
+                    cont += 1
+                else:
+                    cont = 0
 
     def download_image(self, img_url, filename):
         print '%s --> %s' % (img_url, filename)
         if not os.path.exists(filename):
+            file_photo = open(filename, 'w')
             try:
-                resp = urllib2.urlopen(img_url)
-                file_photo = open(filename, 'w')
+                resp = urllib2.urlopen(img_url, timeout=60)
                 file_photo.write(resp.read())
+                file_photo.close()
+                return 1
             except:
-                pass
+                file_photo.close()
+                os.remove(filename)
+                print 'fallo en la descarga'
+                return 0
+        return 1
