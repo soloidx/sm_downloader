@@ -67,7 +67,14 @@ class SubmangaPage(object):
 
         #descargo la imagen de cada capitulo
         cont = 0
-        while len(select) > cont:
+        error = 0
+
+        #si encuentra un archivo '.skip' en el directorio no
+        #considera el capitulo
+        if os.path.exists(page_dir + '/.skip'):
+            return
+
+        while len(select) > cont and error < 5 * len(select):
             for i in range(1, len(select)+1):
                 address = url_down_base + str(i) + '.jpg'
                 filename = page_dir + '/' + str(i).rjust(4,'0') + '.jpg'
@@ -76,6 +83,7 @@ class SubmangaPage(object):
                 if resp:
                     cont += 1
                 else:
+                    error += 1
                     cont = 0
 
     def download_image(self, img_url, filename):
