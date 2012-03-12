@@ -42,6 +42,7 @@ class SubmangaPage(object):
         self.make_directories_and_download(capitulos)
 
     def make_directories_and_download(self, url_list):
+        url_list.reverse()
         for address in  url_list:
             cap_id = address.split('/')[-1]
             cap_name = address.split('/')[-2]
