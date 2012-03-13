@@ -6,12 +6,34 @@ usage:
 
 import os, sys
 import urllib2
+import zipfile
 from os import path
 
 
 from pyquery import PyQuery as pq
 
 ROOT_PATH = path.realpath(path.dirname(__file__))
+
+
+def zipfolder(path, relname, archive):
+    paths = os.listdir(path)
+    for p in paths:
+        p1 = os.path.join(path, p) 
+        p2 = os.path.join(relname, p)
+        if os.path.isdir(p1): 
+            zipfolder(p1, p2, archive)
+        else:
+            archive.write(p1, p2) 
+
+def create_zip(path, relname, archname):
+    archive = zipfile.ZipFile(archname, "w", zipfile.ZIP_DEFLATED)
+    if os.path.isdir(path):
+        zipfolder(path, relname, archive)
+    else:
+        archive.write(path, relname)
+    archive.close()
+
+
 
 class SubmangaPage(object):
     """Core for submanga page object"""
@@ -22,17 +44,20 @@ class SubmangaPage(object):
         num_cut = (len(self.name)+1)*-1
         self.host = page[:num_cut]
         self.output_dir = ROOT_PATH + '/library/' + self.name
+        self.cbz_dir = ROOT_PATH + '/library/' + self.name + '/cbz/'
         if not os.path.exists(self.output_dir):
             print 'creando directorio de manga %s' % self.name
             #crea un directorio con el nombre del manga
             os.makedirs(self.output_dir)
         else:
             print 'accediendo a %s' % self.name
+        if not os.path.exists(self.cbz_dir):
+            os.makedirs(self.cbz_dir)
         self.get_chapters()
 
     def get_chapters(self):
         """
-        obtiene los capiulos de las paginas con sus urls
+        get the page chapters with URLs
         """
         pagina_completa = pq(self.base_url+'/completa')
         #hago una busqueda con pyquery y devuelo el valor de las urls
@@ -53,6 +78,9 @@ class SubmangaPage(object):
             #descargo cada capitulo
             print 'procesando %s' % cap_name
             self.process_page_and_download(cap_id, cap_dir)
+            #this zip a directory in a cbr for comic readers
+            self.compress_chapter(cap_name)
+            
 
     def process_page_and_download(self, page_id, page_dir):
         page_url = self.host + '/c/' + page_id
@@ -85,6 +113,9 @@ class SubmangaPage(object):
                 else:
                     error += 1
                     cont = 0
+        file_skip = open(page_dir + '/.skip', 'w')
+        file_skip.close()
+
 
     def download_image(self, img_url, filename):
         print '%s --> %s' % (img_url, filename)
@@ -101,3 +132,14 @@ class SubmangaPage(object):
                 print 'fallo en la descarga'
                 return 0
         return 1
+
+    def compress_chapter(self, chapter_name):
+        cap_dir = self.output_dir + '/' + chapter_name
+        if chapter_name.isdigit():
+            chapter_name = chapter_name.rjust(4,'0') #this is deliverated
+        filename = self.cbz_dir + chapter_name + '.cbz'
+        
+        if os.path.exists(cap_dir) and not os.path.exists(filename):
+            print 'comprimiendo capitulo...'
+            create_zip(cap_dir, '', filename )
+
