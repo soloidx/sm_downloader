@@ -26,5 +26,7 @@ Para correr el script solo necesitas hacer un `# pyhorn start.py` o simplemente
 puedes encontrar entrando a la pagina del manga, algunos ejemplos son:
 
 http://submanga.com/Naruto
+
 http://submanga.com/Bleach
+
 http://submanga.com/Prince_of_Tennis
