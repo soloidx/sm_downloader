@@ -9,7 +9,6 @@ import urllib2
 import zipfile
 from os import path
 
-
 from pyquery import PyQuery as pq
 
 ROOT_PATH = path.realpath(path.dirname(__file__))
@@ -32,7 +31,6 @@ def create_zip(path, relname, archname):
     else:
         archive.write(path, relname)
     archive.close()
-
 
 
 class SubmangaPage(object):
@@ -67,6 +65,9 @@ class SubmangaPage(object):
         self.make_directories_and_download(capitulos)
 
     def make_directories_and_download(self, url_list):
+        """
+        creates the directories for each chapter
+        """
         url_list.reverse()
         for address in  url_list:
             cap_id = address.split('/')[-1]
@@ -78,11 +79,14 @@ class SubmangaPage(object):
             #descargo cada capitulo
             print 'procesando %s' % cap_name
             self.process_page_and_download(cap_id, cap_dir)
-            #this zip a directory in a cbr for comic readers
+            #cuando termine de descargar las imagenes crea un cbz con el
+            #directorio
             self.compress_chapter(cap_name)
             
-
     def process_page_and_download(self, page_id, page_dir):
+        """
+        process the chapter page and generate the links for each image
+        """
         page_url = self.host + '/c/' + page_id
         page_processed = pq(page_url)
         select = page_processed('select option')
@@ -102,6 +106,8 @@ class SubmangaPage(object):
         if os.path.exists(page_dir + '/.skip'):
             return
 
+        #es un numero de intentos arbitrarios en caso de que falle la
+        #descarga
         while len(select) > cont and error < 5 * len(select):
             for i in range(1, len(select)+1):
                 address = url_down_base + str(i) + '.jpg'
@@ -113,20 +119,26 @@ class SubmangaPage(object):
                 else:
                     error += 1
                     cont = 0
+        #una vez descargado e folder con las imagenes crea un archivo .skip para
+        # que no vuelva a descargar el capitulo
         file_skip = open(page_dir + '/.skip', 'w')
         file_skip.close()
 
-
     def download_image(self, img_url, filename):
+        """
+        download a individual image
+        """
         print '%s --> %s' % (img_url, filename)
         if not os.path.exists(filename):
             file_photo = open(filename, 'w')
             try:
+                #este timeout es arbitrario, no me gusta esperar xP
                 resp = urllib2.urlopen(img_url, timeout=60)
                 file_photo.write(resp.read())
                 file_photo.close()
                 return 1
             except:
+                #si no puede bajar el archivo lo borra
                 file_photo.close()
                 os.remove(filename)
                 print 'fallo en la descarga'
@@ -134,6 +146,9 @@ class SubmangaPage(object):
         return 1
 
     def compress_chapter(self, chapter_name):
+        """
+        compress a champther into a cbz
+        """
         cap_dir = self.output_dir + '/' + chapter_name
         if chapter_name.isdigit():
             chapter_name = chapter_name.rjust(4,'0') #this is deliverated
@@ -142,4 +157,3 @@ class SubmangaPage(object):
         if os.path.exists(cap_dir) and not os.path.exists(filename):
             print 'comprimiendo capitulo...'
             create_zip(cap_dir, '', filename )
-

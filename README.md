@@ -21,4 +21,10 @@ Instalacion:
 
 Uso
 ---
-Puedes ver el archivo test.py para ver el uso, tan solo es momentaneo pues implementare un menu entre otras cosas
+Para correr el script solo necesitas hacer un `# pyhorn start.py` o simplemente 
+`./start.py` el script te preguntará por la dirección de la web del capítulo, la
+puedes encontrar entrando a la pagina del manga, algunos ejemplos son:
+
+http://submanga.com/Naruto
+http://submanga.com/Bleach
+http://submanga.com/Prince_of_Tennis
